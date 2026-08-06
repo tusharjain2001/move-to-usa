@@ -331,6 +331,16 @@ function QuoteBand({ values, setValues, scrollToCalc }) {
                 ? <>One quick check, <span className="serif">then your quote.</span></>
                 : <>Tell us where you're moving. <span className="serif">We'll show you the cost.</span></>}
             </h2>
+            {started && (
+              <div className="quote-band-desc">
+                <p>
+                  Plan your international move in just a few simple steps. Use our
+                  AI-powered video survey to create your inventory, receive a real-time
+                  quotation, complete your payment securely, and confirm your booking —
+                  all from one place.
+                </p>
+              </div>
+            )}
             {!started && gate !== "otp" && (
               <div className="quote-band-desc">
                 <p>
@@ -348,7 +358,7 @@ function QuoteBand({ values, setValues, scrollToCalc }) {
             )}
           </div>
           <div className="quote-band-meta">
-            <span><i />Live carrier rates</span>
+            <span><i />Real-time pricing</span>
             <span><i />AI video survey</span>
             <span><i />Pay &amp; book online</span>
           </div>

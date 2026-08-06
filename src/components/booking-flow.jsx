@@ -21,7 +21,16 @@ import { toApiValues } from "../api/quote-values.js";
 // Step 3: payment
 // Step 4: order confirmation
 
-const BF_STEPS = ["Inventory", "Quote", "Payment", "Confirm"];
+const BF_STEPS = ["Inventory", "Quote", "Payment", "Confirmation"];
+
+// Rooms offered by the AI survey. The survey runs once per room and tags every
+// detected item with the room it came from — client.js sends those on as
+// `room_name` in the step-4 order update.
+const ROOMS = [
+  "Living Room", "Dining Room", "Study Room", "Office Room",
+  "Bed Room 1", "Bed Room 2", "Bed Room 3", "Bed Room 4",
+  "Kitchen", "Laundry / Utility", "Balcony", "Entrance",
+];
 
 // ── Item presets ────────────────────────────────────────────────────────────
 // `box` = AI detection bounding box on the camera frame, in % {x,y,w,h}
@@ -54,6 +63,79 @@ const BOX_SIZES = {
 };
 
 // ── Pricing helpers (live rates come from the API) ─────────────────────────
+// Mirrors the same constant inside client.js, which doesn't export it.
+const M3_TO_FT3 = 35.3147;
+
+// What each leg of the quote covers — shown above the live line items so the
+// figures below have context.
+const QUOTE_SCOPE = [
+  ["Origin", "Professional packing, loading, export documentation, and handling at origin."],
+  ["Freight", "International sea or air freight charges based on your shipment volume and destination."],
+  ["Destination", "Customs clearance, destination handling, final delivery, and unpacking (where applicable)."],
+];
+
+// Client's service agreement, shown in the terms modal on the quote screen.
+const TERMS = [
+  {
+    h: "Our services in origin",
+    items: [
+      "Pre-move consultation and survey.",
+      "Experienced professional packing team will pack the items based on international moving standards.",
+      "We take necessary precautions to prevent goods from any kind of moisture and water contamination damage.",
+      "Our moving consultants will coordinate with your building management authority.",
+      "The quotation includes all port or shipping line charges in origin port and ocean freight charges to the destination port.",
+      "Provision of various sizes of cartons, tapes, bubble wrap, wrapping papers, hardboard and all other required international standard packing material.",
+      "Our expert moving consultants will take care of all important paperwork such as preparing transit inventory list, handling packing completion documents, managing export and outbound customs clearance documentation etc.",
+    ],
+  },
+  {
+    h: "Our services at destination",
+    items: [
+      "Import documentation and customs clearance including standard destination shipping line port charges.",
+      "Transportation of the shipment from port to the residence/warehouse.",
+      "Our services at client destination include safe delivery of belongings to client residence, placing of boxes on flat surface or into respective rooms, assembling of normal furniture like dining table, beds etc. which does not require any highly-trained personnel, and unpacking of boxes onto countertops/benchtops as space permits.",
+      "On the day of delivery, our crew will take care of cleaning debris and will return the empty container to the nearest port.",
+      "The customer has to provide all import documentation for customs clearance prior to the arrival of the shipment at the port, or in advance as per the requirement in each country.",
+    ],
+  },
+  {
+    h: "Transit insurance",
+    items: [
+      "Apac Relocation can arrange transit insurance in accordance with the terms and conditions of transit insurance underwriters. If a client reports damage to any goods during transit, we can assist them in claim settlement proceedings.",
+      "All claims shall be reported within 30 days of delivery as per the delivery document date.",
+      "Completed insurance form must be submitted by the client 3 days prior to the packing date.",
+      "Minimum insurance premium will be SGD 150.",
+      "Storage insurance extension is available after 90 free days, applicable fees may apply.",
+      "All claims will be subject to the insurance underwriter's terms and conditions. Apac Relocation has no liability for the claim procedure or claiming amounts. In case of a non-insured shipment, Apac can be held liable for max S$100 per shipment.",
+    ],
+  },
+  {
+    h: "Rates exclude",
+    items: [
+      "Dismantling and assembling of new or flat-packed, IKEA, or furniture/items which require a specialist.",
+      "Wall mounting, electrical works, piano handling, valet service — unpacking of boxes and placing in cupboards, shelves etc.",
+      "Non-refundable deposit to condo/building management authority.",
+      "Delivery services on weekends, public holidays and non-office hours.",
+      "Stair carrying above 1st floor and use of external elevator. Parking permit slot charges and shuttling services beyond 50 feet between container/truck parking location and the main entrance of the residence.",
+      "Destination port storage charges, destination customs warehouse storage, customs warehouse handling charges etc.",
+      "Customs duty/tax, quarantine charges, X-ray/gamma radiation scanning fee, examination fee, and any government charges if any at the destination.",
+      "Port storage charges/container detention charges. These charges can be applicable in the following cases — lack of necessary documents, non-availability of the client for the delivery, and any delay in the release of shipment from customs due to holidays, technical issues in the customs website, and unexpected issues like port congestion, natural calamities and strikes.",
+      "Warehouse handling charges (in/out) other than indicated in the proposal. These charges are applicable only if storage is required by the client at origin/destination.",
+    ],
+  },
+];
+
+const RATES_INCLUDE = [
+  "Professional export packing materials",
+  "Collection from your residence",
+  "Export documentation and customs clearance",
+  "International sea or air freight",
+  "Destination customs clearance (where applicable)",
+  "Destination handling and local delivery",
+  "Unpacking service (if included in your quotation)",
+  "Basic removal of used packing materials after unpacking",
+];
+
 const fmtMoney = (n, currency) =>
   `${currency || CURRENCY} ${Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -148,13 +230,15 @@ function pickRecorderMime() {
 }
 
 function VideoSurvey({ onComplete, preset }) {
-  const [phase, setPhase] = useState("idle"); // idle, recording, analyzing, done
+  const [phase, setPhase] = useState("idle"); // idle, recording, analyzing, review
   const [progress, setProgress] = useState(0);
   const [elapsed, setElapsed] = useState(0);   // recording seconds
   const [detected, setDetected] = useState([]);
   const [removed, setRemoved] = useState(() => new Set());
   const [container, setContainer] = useState(""); // recommendedContainer from the AI
   const [error, setError] = useState("");
+  const [activeRoom, setActiveRoom] = useState("");
+  const [saved, setSaved] = useState([]); // banked items, each tagged with .room
   const fileRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -207,7 +291,7 @@ function VideoSurvey({ onComplete, preset }) {
       const rc = deepGet(result, ["recommendedContainer", "recommended_container"]);
       if (rc) setContainer(rc);
       setProgress(100);
-      setPhase("done");
+      setPhase("review");
     } catch (err) {
       setError(err.message || "Video analysis failed. Please try again.");
       setProgress(0);
@@ -268,13 +352,64 @@ function VideoSurvey({ onComplete, preset }) {
     });
 
   const kept = detected.filter((_, i) => !removed.has(i));
-  const keptCount = kept.length;
-  const interactive = phase === "done";
+  const interactive = phase === "review";
   const cameraOn = phase === "recording";
   const clock = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  // ── Room bookkeeping ──────────────────────────────────────────────────────
+  const scannedRooms = ROOMS.filter((r) => saved.some((it) => it.room === r));
+  const nextRoom = activeRoom || ROOMS.find((r) => !scannedRooms.includes(r)) || ROOMS[0];
+  const busyScanning = phase === "recording" || phase === "analyzing";
+
+  // Bank the current room's kept items, then queue up the next unscanned room.
+  const saveRoom = () => {
+    const tagged = kept.map((it) => ({ ...it, room: nextRoom }));
+    const rest = saved.filter((it) => it.room !== nextRoom); // re-scan replaces
+    const merged = [...rest, ...tagged];
+    setSaved(merged);
+    setDetected([]);
+    setRemoved(new Set());
+    setProgress(0);
+    setElapsed(0);
+    setPhase("idle");
+    const done = ROOMS.filter((r) => merged.some((it) => it.room === r));
+    setActiveRoom(ROOMS.find((r) => !done.includes(r)) || "");
+  };
+
+  // Side panel: banked rooms, with the room being reviewed shown live.
+  const groups = ROOMS
+    .map((r) => ({
+      room: r,
+      items: r === nextRoom && detected.length ? kept : saved.filter((it) => it.room === r),
+      live: r === nextRoom && detected.length > 0,
+    }))
+    .filter((g) => g.items.length);
+
   return (
     <div className="bf-video">
+      <div className="bf-rooms">
+        <div className="text-mono-sm bf-rooms-h">
+          Select a room · <span>{scannedRooms.length}/{ROOMS.length} scanned</span>
+        </div>
+        <div className="bf-room-chips">
+          {ROOMS.map((r) => {
+            const done = scannedRooms.includes(r);
+            return (
+              <button
+                key={r}
+                type="button"
+                className={"bf-room-chip" + (nextRoom === r ? " on" : "") + (done ? " done" : "")}
+                disabled={busyScanning}
+                onClick={() => setActiveRoom(r)}
+              >
+                <span className="bf-room-mark">{done ? "✓" : ""}</span>
+                {r}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="bf-video-stage">
         <div className="bf-video-cam">
           <div className="bf-video-grid" />
@@ -282,6 +417,25 @@ function VideoSurvey({ onComplete, preset }) {
             <video ref={videoRef} className="bf-video-live" autoPlay playsInline muted />
           )}
           <div className="bf-video-scan" data-active={phase === "analyzing"} />
+
+          {phase === "idle" && (
+            <div className="bf-video-empty">
+              <span className="bf-video-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2.5" y="7" width="13" height="10" rx="2.5" />
+                  <path d="M15.5 11l6-3.5v9l-6-3.5z" />
+                </svg>
+              </span>
+              <div className="bf-video-empty-t">AI video survey</div>
+              <p className="bf-video-empty-p">
+                {activeRoom
+                  ? `Ready to scan your ${activeRoom.toLowerCase()}.`
+                  : "Choose a room above to begin your AI video survey."}<br />
+                Walk through one room at a time while our AI identifies<br />
+                and records the items you plan to move.
+              </p>
+            </div>
+          )}
 
           {/* live AI detection boxes drawn over the camera frame */}
           <div className="bf-video-boxes">
@@ -317,10 +471,12 @@ function VideoSurvey({ onComplete, preset }) {
           <div className="bf-video-overlay">
             <span className="bf-video-status mono">
               <i className={"bf-dot " + phase} />
-              {phase === "idle" && "READY · CAMERA OFF"}
-              {phase === "recording" && "REC · WALKING THROUGH HOME"}
+              {phase === "idle" && (activeRoom
+                ? `READY · ${activeRoom.toUpperCase()}`
+                : "READY · SELECT A ROOM ABOVE")}
+              {phase === "recording" && `REC · ${nextRoom.toUpperCase()}`}
               {phase === "analyzing" && "AI · IDENTIFYING ITEMS"}
-              {phase === "done" && "✓ SURVEY COMPLETE · TAP A BOX TO REMOVE"}
+              {phase === "review" && "✓ ROOM COMPLETE · TAP A BOX TO REMOVE"}
             </span>
             <span className="bf-video-tc mono">
               {phase === "analyzing" ? `${String(Math.floor(progress)).padStart(2, "0")}%` : clock(elapsed)}
@@ -335,38 +491,46 @@ function VideoSurvey({ onComplete, preset }) {
 
         <div className="bf-video-side">
           <div className="bf-video-side-h">
-            <div className="text-mono-sm">AI · DETECTION FEED</div>
+            <div className="text-mono-sm">Inventory by room</div>
             <div className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>
-              {keptCount}/{detected.length}
+              {scannedRooms.length}/{ROOMS.length} rooms
             </div>
           </div>
           <ul className="bf-detected">
-            {phase === "idle" && (
+            {groups.length === 0 && (
               <li className="bf-detected-placeholder muted">
-                Press start to walk through your home. AI will identify furniture and
-                estimate shipping volume in real-time. Spot something you're not shipping?
-                Tap its box on the video to remove it.
+                Your scanned items will appear here, organized by room, making it easy to
+                review your inventory before requesting your quotation.
               </li>
             )}
-            {detected.map((d, i) => {
-              if (removed.has(i)) return null;
-              return (
-                <li key={i} className="bf-detected-item">
-                  <span className="mono bf-detected-tag">{`#${String(i + 1).padStart(2, "0")}`}</span>
-                  <span className="bf-detected-name">{d.name}</span>
-                  <span className="mono muted">×{d.qty}</span>
-                  <span className="mono bf-detected-vol">{d.vol.toFixed(2)} m³</span>
-                  {interactive && (
-                    <button
-                      className="bf-detected-x"
-                      onClick={() => removeItem(i)}
-                      aria-label={"Remove " + d.name}
-                      title="Remove"
-                    >×</button>
-                  )}
-                </li>
-              );
-            })}
+            {groups.map((g) => (
+              <li key={g.room} className="bf-room-group">
+                <div className="text-mono-sm bf-room-group-h">
+                  {g.room}
+                  <span>{g.items.length} item{g.items.length === 1 ? "" : "s"}</span>
+                </div>
+                <ul className="bf-room-group-list">
+                  {g.items.map((d, i) => (
+                    <li key={g.room + i} className="bf-detected-item">
+                      <span className="mono bf-detected-tag">{`#${String(i + 1).padStart(2, "0")}`}</span>
+                      <span className="bf-detected-name">{d.name}</span>
+                      <span className="mono muted">×{d.qty}</span>
+                      <span className="mono bf-detected-vol">{d.vol.toFixed(2)} m³</span>
+                      {/* Only the room under review is editable here; banked rooms
+                          stay editable on the items table that follows. */}
+                      {g.live && interactive && (
+                        <button
+                          className="bf-detected-x"
+                          onClick={() => removeItem(detected.indexOf(d))}
+                          aria-label={"Remove " + d.name}
+                          title="Remove"
+                        >×</button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -375,12 +539,23 @@ function VideoSurvey({ onComplete, preset }) {
         {phase === "idle" && (
           <>
             <button className="btn primary" onClick={startRecording}>
-              Start AI video survey <span className="arr">→</span>
+              {saved.length ? "Scan" : "Start with"} {nextRoom} <span className="arr">→</span>
             </button>
-            <button className="btn ghost" onClick={() => onComplete(preset, "")}>
-              Skip — use standard preset
-            </button>
+            {saved.length === 0 ? (
+              <button className="btn ghost" onClick={() => onComplete(preset, "")}>
+                Skip — I'll enter my inventory manually
+              </button>
+            ) : (
+              <button className="btn ghost" onClick={() => onComplete(saved, container)}>
+                Done — continue to quote <span className="arr">→</span>
+              </button>
+            )}
             {error && <div className="bf-api-error mono">{error}</div>}
+            <div className="bf-video-note mono">
+              {saved.length === 0
+                ? "Select a room above to begin your AI walkthrough and continue room by room until your inventory is complete."
+                : `${scannedRooms.length} of ${ROOMS.length} rooms scanned · ${saved.length} item${saved.length === 1 ? "" : "s"} captured.`}
+            </div>
           </>
         )}
         {phase === "recording" && (
@@ -393,10 +568,10 @@ function VideoSurvey({ onComplete, preset }) {
             AI is identifying items in your walkthrough · this can take a moment.
           </div>
         )}
-        {phase === "done" && (
+        {phase === "review" && (
           <>
-            <button className="btn primary" disabled={kept.length === 0} onClick={() => onComplete(kept, container)}>
-              Looks good — continue <span className="arr">→</span>
+            <button className="btn primary" disabled={kept.length === 0} onClick={saveRoom}>
+              Save {nextRoom} <span className="arr">→</span>
             </button>
             <div className="bf-video-note mono">
               {kept.length} item{kept.length === 1 ? "" : "s"} kept
@@ -713,13 +888,23 @@ function QuoteSummary({ orderId, volume, moveType, values, meta, onPay, onBack }
           <div className="bf-quote-total mono">
             {loading ? "…" : quote ? fmtMoney(quote.total, quote.currency) : "—"}
           </div>
-          <div className="bf-quote-vol mono">{volume.toFixed(1)} m³</div>
+          <div className="bf-quote-vol mono">
+            {(volume * M3_TO_FT3).toFixed(2)} cft · {volume.toFixed(2)} m³
+          </div>
         </div>
       </div>
 
       <div className="bf-quote-grid">
         <div className="bf-quote-card">
           <div className="bf-quote-card-h">Cost breakdown</div>
+          <dl className="bf-scope">
+            {QUOTE_SCOPE.map(([leg, desc]) => (
+              <div key={leg}>
+                <dt className="text-mono-sm">{leg}</dt>
+                <dd>{desc}</dd>
+              </div>
+            ))}
+          </dl>
           {loading && <div className="bf-video-note mono">Fetching live carrier rates…</div>}
           {!loading && error && (
             <>
@@ -754,16 +939,11 @@ function QuoteSummary({ orderId, volume, moveType, values, meta, onPay, onBack }
         </div>
 
         <div className="bf-quote-card">
-          <div className="bf-quote-card-h">What's included</div>
+          <div className="bf-quote-card-h">Rates include</div>
           <ul className="bf-incl">
-            <li><span className="mono">✓</span> Export-grade packing materials</li>
-            <li><span className="mono">✓</span> Professional packing &amp; loading</li>
-            <li><span className="mono">✓</span> Ocean freight to US port</li>
-            <li><span className="mono">✓</span> US customs clearance (CF-3299)</li>
-            <li><span className="mono">✓</span> Destination delivery &amp; unpack</li>
-            <li><span className="mono">✓</span> A-rated marine insurance</li>
-            <li><span className="mono">✓</span> 14-day price lock guarantee</li>
-            <li><span className="mono">✓</span> Real-time tracking dashboard</li>
+            {RATES_INCLUDE.map((r) => (
+              <li key={r}><span className="mono">✓</span> {r}</li>
+            ))}
           </ul>
         </div>
       </div>
@@ -799,29 +979,14 @@ function QuoteSummary({ orderId, volume, moveType, values, meta, onPay, onBack }
             </div>
             <h3 className="h3 mt-16">Service agreement</h3>
             <div className="bf-terms-body muted">
-              <p>
-                <strong>1. Price lock.</strong> The quoted total is held for 14 calendar days from
-                the date of payment. Carrier surcharges that arise after the lock period may
-                affect final invoicing.
-              </p>
-              <p>
-                <strong>2. Liability.</strong> Goods are insured under a Lloyd's-syndicated A-rated
-                marine cargo policy at 110% of declared value. Excluded items: cash, jewellery
-                above SGD 5,000, perishables.
-              </p>
-              <p>
-                <strong>3. Cancellation.</strong> Full refund up to 7 days before pack day.
-                25% retention 6–3 days. 50% within 48 hours. No refund after crew dispatch.
-              </p>
-              <p>
-                <strong>4. Customs.</strong> US customs may inspect any shipment. Inspection
-                fees, if levied by CBP, are passed through at cost.
-              </p>
-              <p>
-                <strong>5. Delivery window.</strong> Transit times are estimates based on
-                current carrier schedules. Demurrage and port congestion outside our control
-                are not the basis for refund.
-              </p>
+              {TERMS.map((sec) => (
+                <section key={sec.h}>
+                  <h4>{sec.h}</h4>
+                  <ul>
+                    {sec.items.map((it, i) => <li key={i}>{it}</li>)}
+                  </ul>
+                </section>
+              ))}
               <p>
                 Full agreement available at apacrelocation.com/terms — emailed with your
                 booking confirmation.
@@ -936,12 +1101,18 @@ function PaymentForm({ orderId, amount, currency, values, onConfirm, onBack }) {
           <div className="bf-pay-head">
             <div className="text-mono-sm">SECURE PAYMENT · 256-BIT TLS</div>
             <h4 className="bf-items-title mt-8">Choose how to pay</h4>
+            <p className="bf-pay-head-p">
+              Choose your preferred payment method to complete your booking. All payments
+              are processed securely, and your move will be confirmed once payment is
+              received.
+            </p>
           </div>
 
           <div className="bf-pay-methods">
             {[
               { id: "card", label: "Card", sub: "Visa · Mastercard · Amex" },
-              { id: "paynow", label: "PayNow", sub: "Singapore" },
+              { id: "paynow", label: "PayNow QR", sub: "Scan & pay with your bank app" },
+              // Singapore banks — the origin market for this site.
               { id: "bank", label: "Bank transfer", sub: "DBS / OCBC / UOB" },
             ].map((m) => (
               <label key={m.id} className={"bf-pay-method" + (method === m.id ? " active" : "")}>
@@ -1017,7 +1188,7 @@ function PaymentForm({ orderId, amount, currency, values, onConfirm, onBack }) {
           </ul>
           <div className="bf-pay-trust">
             <div className="bf-pay-trust-row"><span className="mono">✓</span> 256-bit TLS encryption</div>
-            <div className="bf-pay-trust-row"><span className="mono">✓</span> Stripe-tokenized cards</div>
+            <div className="bf-pay-trust-row"><span className="mono">✓</span> PCI-DSS hosted checkout</div>
             <div className="bf-pay-trust-row"><span className="mono">✓</span> Full refund · 7 days</div>
           </div>
         </aside>
@@ -1151,6 +1322,17 @@ function BookingFlow({ values, orderId, onReset }) {
   return (
     <div className="bf">
       <BfStepIndicator step={step} />
+
+      {step === 0 && !useBoxes && showVideo && (
+        <p className="bf-step-note">
+          Create your inventory by scanning each room using our AI-assisted video survey.
+        </p>
+      )}
+      {step === 2 && (
+        <p className="bf-step-note">
+          Securely complete your booking with our online payment system.
+        </p>
+      )}
 
       {step === 0 && useBoxes && (
         <BoxBuilder
