@@ -21,11 +21,11 @@ const VISAS = [
     cost: "$3,500–$8,000",
     family: "H-4 dependents",
     greenCardPath: "Yes",
-    summary: "The most common work visa for APAC tech, finance, and engineering hires. Employer-sponsored.",
+    summary: "Designed for professionals employed in specialized occupations by a US-based employer.",
     requires: ["Bachelor's degree", "Employer sponsor", "LCA filed"],
   },
   {
-    code: "L-1A/B",
+    code: "L-1",
     name: "Intra-Company Transfer",
     category: "Work",
     durationMonths: 36,
@@ -34,7 +34,7 @@ const VISAS = [
     cost: "$2,500–$6,500",
     family: "L-2 + work permit",
     greenCardPath: "Yes (L-1A fast)",
-    summary: "For executives, managers, and specialized employees transferring within an APAC-US company.",
+    summary: "For employees transferring from an overseas office to a US office within the same organization.",
     requires: ["1 year overseas", "Qualifying entity", "Specialized role"],
   },
   {
@@ -47,60 +47,47 @@ const VISAS = [
     cost: "$5,000–$12,000",
     family: "O-3 dependents",
     greenCardPath: "Yes (EB-1)",
-    summary: "For founders, researchers, and creatives with national or international recognition.",
+    summary: "For individuals with extraordinary ability in business, science, education, athletics, or the arts.",
     requires: ["3 of 8 criteria", "Sustained acclaim", "US engagement"],
   },
   {
     code: "EB-5",
-    name: "Investor Green Card",
-    category: "Investment",
+    name: "Investor Visa",
+    category: "Investor",
     durationMonths: 999,
     cap: "Per-country quota",
     leadTime: "24–48 months",
     cost: "$800K–$1.05M + fees",
     family: "Spouse + under-21",
     greenCardPath: "Direct",
-    summary: "Permanent residence via qualifying investment in a US business creating 10 jobs.",
+    summary: "For individuals investing in qualifying US business ventures that create employment opportunities.",
     requires: ["$800K investment", "Lawful source", "Job creation"],
   },
   {
     code: "E-2",
     name: "Treaty Investor",
-    category: "Investment",
+    category: "Investor",
     durationMonths: 60,
     cap: "No cap · treaty",
     leadTime: "3–6 months",
     cost: "$5,000–$15,000",
     family: "E-2 dependents + work",
     greenCardPath: "No (renewable)",
-    summary: "For Singapore, Japan, Korea, Australia nationals investing in a US enterprise.",
+    summary: "For investors from eligible treaty countries seeking to establish or acquire a business in the United States.",
     requires: ["Treaty country", "Substantial investment", "Active business"],
   },
   {
     code: "F-1",
     name: "Student Visa",
-    category: "Study",
+    category: "Student",
     durationMonths: 48,
     cap: "No cap",
     leadTime: "1–3 months",
     cost: "$510 + SEVIS",
     family: "F-2 dependents",
     greenCardPath: "Via OPT → H-1B",
-    summary: "Full-time study at an accredited US institution. Includes 12–36 months of post-study work (OPT).",
+    summary: "For international students pursuing full-time academic programs at accredited US institutions.",
     requires: ["I-20 from school", "Financial proof", "Ties to home"],
-  },
-  {
-    code: "EB-1A",
-    name: "Extraordinary Ability GC",
-    category: "Family",
-    durationMonths: 999,
-    cap: "Per-country",
-    leadTime: "12–24 months",
-    cost: "$8,000–$18,000",
-    family: "Spouse + under-21",
-    greenCardPath: "Direct",
-    summary: "Self-petition green card for top APAC researchers, executives, and athletes.",
-    requires: ["Self-petition OK", "Extraordinary ability", "US plan of work"],
   },
   {
     code: "IR/CR-1",
@@ -112,12 +99,47 @@ const VISAS = [
     cost: "$1,500–$4,000",
     family: "Direct path",
     greenCardPath: "Direct",
-    summary: "Permanent residence for spouses of US citizens — fastest family-based route.",
+    summary: "For spouses of US citizens seeking permanent residence.",
     requires: ["Bona fide marriage", "I-130 + DS-260", "Affidavit of support"],
+  },
+  {
+    code: "F1–F4",
+    name: "Family-Based Immigration",
+    category: "Family",
+    durationMonths: 999,
+    cap: "226,000/yr · 7% per country",
+    leadTime: "2–15+ years",
+    cost: "$1,200–$3,500",
+    family: "Spouse + under-21",
+    greenCardPath: "Direct",
+    summary: "For eligible family members sponsored by US citizens or permanent residents.",
+    requires: ["Qualifying relative", "I-130 petition", "Affidavit of support"],
+  },
+  {
+    code: "EB-1A",
+    name: "Extraordinary Ability GC",
+    category: "Family",
+    durationMonths: 999,
+    cap: "Per-country",
+    leadTime: "12–24 months",
+    cost: "$8,000–$18,000",
+    family: "Spouse + under-21",
+    greenCardPath: "Direct",
+    summary: "For individuals demonstrating extraordinary achievements in their field.",
+    requires: ["Self-petition OK", "Extraordinary ability", "US plan of work"],
   },
 ];
 
-const VISA_CATS = ["All", "Work", "Investment", "Study", "Family"];
+const VISA_CATS = ["All", "Work", "Investor", "Student", "Family"];
+
+// Closing block — how the visa timeline ties back into the move itself.
+const VISA_PLAN = [
+  "Relocation planning",
+  "Shipping coordination",
+  "Customs guidance",
+  "Destination support",
+  "Dedicated move manager",
+];
 
 function Visa() {
   const [cat, setCat] = useState("All");
@@ -125,19 +147,28 @@ function Visa() {
   return (
     <section className="band cream" id="visa">
       <div className="wrap">
-        <div className="services-hd">
+        <div className="services-hd top">
           <div>
             <div className="eyebrow">VISA · OPTIONS · 06</div>
             <h2 className="h1 mt-16">
-              Pick a path.<br />
-              <span className="serif">We'll meet you at the embassy.</span>
+              Explore your pathway<br />
+              <span className="serif">to the USA.</span>
             </h2>
           </div>
-          <p className="lede" style={{ maxWidth: 42 + "ch" }}>
-            Visa choice shapes everything — your customs forms, your tax residency, your kids'
-            school enrollment. Our immigration partners hold a 96.3% first-attempt approval
-            rate for APAC applicants since 2019.
-          </p>
+          {/* div, not p — the document's intro runs to two paragraphs. */}
+          <div className="lede" style={{ maxWidth: 42 + "ch" }}>
+            <p>
+              Choosing the right visa is an important part of your relocation journey.
+              Whether you're moving for employment, education, investment, or family
+              reasons, understanding your options can help you plan your move more
+              effectively.
+            </p>
+            <p className="mt-16">
+              Our relocation specialists work alongside individuals, families, and
+              professionals planning to move to the USA, helping them coordinate their
+              relocation timeline with their immigration plans.
+            </p>
+          </div>
         </div>
 
         <div className="visa-filters mt-32">
@@ -186,6 +217,21 @@ function Visa() {
               </a>
             </article>
           ))}
+        </div>
+
+        <div className="card mt-48">
+          <h3 className="h3">Planning your relocation</h3>
+          <p className="muted mt-12" style={{ fontSize: 15, lineHeight: 1.55, maxWidth: 70 + "ch" }}>
+            Every visa pathway comes with different timelines, documentation requirements,
+            and relocation considerations. Our team helps coordinate your international
+            moving schedule alongside your relocation plans, helping make your transition
+            to the United States as smooth as possible.
+          </p>
+          <div className="services-footer mt-24">
+            {VISA_PLAN.map((p) => (
+              <div key={p} className="chip"><span className="mono">✓</span> {p}</div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

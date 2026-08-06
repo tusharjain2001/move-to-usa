@@ -570,6 +570,9 @@
 .services-hd {
   display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: end;
 }
+/* Where the lede runs to several paragraphs, bottom-aligning drops the
+   heading far down the column — top-align those headers instead. */
+.services-hd.top { align-items: start; }
 @media (max-width: 920px) { .services-hd { grid-template-columns: 1fr; gap: 24px; } }
 .services-grid {
   display: grid;
@@ -728,8 +731,8 @@
   background: var(--cream); color: var(--ink-2);
 }
 .tag-work { background: rgba(8,152,152,0.14); color: var(--accent-ink); }
-.tag-investment { background: rgba(24,184,232,0.16); color: #0a6a8c; }
-.tag-study { background: rgba(245,144,36,0.14); color: #8a4d0d; }
+.tag-investor { background: rgba(24,184,232,0.16); color: #0a6a8c; }
+.tag-student { background: rgba(245,144,36,0.14); color: #8a4d0d; }
 .tag-family { background: rgba(26,46,46,0.08); color: var(--ink); }
 
 .visa-specs {

@@ -81,39 +81,39 @@ function Services() {
 const STEPS = [
   {
     week: "T − 12 weeks",
-    title: "Get a quote & lock your plan",
-    body: "Book a 20-min survey. We confirm volume, dates, and visa-aware customs strategy. A move manager is assigned in 48 hours.",
-    tasks: ["Online survey or home visit", "Visa class confirmation", "Fixed quote signed"],
+    title: "Start your relocation journey",
+    body: "Begin with a personalized consultation to discuss your moving requirements, destination, timeline, and preferred shipping options.",
+    tasks: ["Initial relocation consultation", "Move assessment", "Personal move coordinator", "Tailored relocation plan"],
   },
   {
     week: "T − 8 weeks",
-    title: "Paperwork & permits",
-    body: "We file your US customs entry, ISF, and 3299 unaccompanied goods declaration. You sign — we do the rest.",
-    tasks: ["CF-3299 prepared", "ISF + AMS filing", "Restricted-item review"],
+    title: "Prepare documentation & move planning",
+    body: "Our team helps organize essential documentation, shipping requirements, inventory preparation, and relocation planning to keep your move on track.",
+    tasks: ["Documentation guidance", "Shipping preparation", "Inventory planning", "Customs support"],
   },
   {
     week: "T − 4 weeks",
-    title: "Disconnect & downsize",
-    body: "Concierge handles utilities, school records, banking, and a curated donation/sale plan for items you're not shipping.",
-    tasks: ["Utility cut-offs", "School records transfer", "Sale & donation pickup"],
+    title: "Confirm your moving schedule",
+    body: "Finalize moving dates, shipment details, and service requirements as you prepare your belongings for transportation.",
+    tasks: ["Move scheduling", "Shipment confirmation", "Service coordination", "Destination planning"],
   },
   {
     week: "T − 1 week",
-    title: "Pack day",
-    body: "Our crew arrives, packs and inventories everything in 1–2 days. Loading the same week — you keep working until Friday.",
-    tasks: ["Photo inventory", "Custom crating", "Container loading"],
+    title: "Professional packing & collection",
+    body: "Our experienced packing specialists prepare your belongings using export-grade materials and detailed inventory procedures.",
+    tasks: ["Professional packing", "Export-grade materials", "Inventory management", "Fragile item protection"],
   },
   {
     week: "T + 2 days",
-    title: "You fly. We sail.",
-    body: "You land in the US with a 30-day welcome kit (linens, kitchen basics). Your shipment is in transit, tracked daily.",
-    tasks: ["Welcome kit at hotel", "Daily transit updates", "Arrival appointment booked"],
+    title: "International shipping",
+    body: "Your shipment begins its journey through the selected transportation method, whether by air freight, sea freight, or a combined shipping solution.",
+    tasks: ["Air freight options", "Sea freight solutions", "Shipment tracking", "Transit monitoring"],
   },
   {
     week: "T + 4 weeks",
-    title: "Move-in day",
-    body: "Delivery, unpack, assemble, and debris removal — usually within one calendar day at destination.",
-    tasks: ["US customs cleared", "Furniture assembled", "Settle-in concierge handoff"],
+    title: "Delivery & settling in",
+    body: "Once your shipment arrives, our destination teams coordinate delivery and optional unpacking services to help you settle into your new home.",
+    tasks: ["Destination delivery", "Unpacking support", "Move-in assistance", "Relocation guidance"],
   },
 ];
 
@@ -124,8 +124,22 @@ function Guide() {
       <div className="wrap">
         <SectionHeader
           kicker="STEP · BY · STEP · 05"
-          title="How a move from Singapore actually unfolds."
-          lede="Twelve weeks from quote to keys is typical. Click any step to see what's happening that week — and what we handle so you don't have to."
+          title="Planning your move to the USA."
+          lede={
+            <>
+              <p>
+                Every successful international relocation starts with a clear plan. From
+                your initial consultation and shipment preparation to customs clearance
+                and final delivery, our relocation specialists guide you through every
+                stage of the moving process.
+              </p>
+              <p className="mt-16">
+                Whether you're relocating for work, family, education, or business
+                opportunities, our structured approach helps make moving to the USA
+                simpler, more predictable, and stress-free.
+              </p>
+            </>
+          }
         />
 
         <div className="guide mt-48">

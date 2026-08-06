@@ -60,7 +60,8 @@ function SectionHeader({ kicker, title, lede, align = "left", id }) {
     <header className={"sect-hd " + align} id={id}>
       <div className="eyebrow">{kicker}</div>
       <h2 className="h1 mt-16" style={{ maxWidth: 22 + "ch" }}>{title}</h2>
-      {lede && <p className="lede mt-16">{lede}</p>}
+      {/* div, not p — some sections pass multiple paragraphs as the lede. */}
+      {lede && <div className="lede mt-16">{lede}</div>}
     </header>
   );
 }
