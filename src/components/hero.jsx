@@ -20,21 +20,27 @@ function Hero({ quoteState }) {
         <div className="hero-left">
           <div className="eyebrow">SINGAPORE · BASED · APAC WIDE</div>
           <h1 className="display mt-24">
-            Your <span className="serif">whole life</span>,<br />
-            moved to America.
+            Move to the USA<br />
+            <span className="serif">with Confidence</span>
           </h1>
 
           <div className="hero-desc mt-32">
             <p className="lede">
-              Moving to the USA involves securing a US visa, arranging sea or air
-              freight, and completing US Customs clearance. Sea freight takes 20–35
-              days and costs approximately SGD 9,000–18,000 for a full household.
-              APAC Relocation manages the entire physical move door-to-door.
+              Moving to the USA involves careful planning, international shipping,
+              customs clearance, and the right relocation support. Whether you are
+              relocating for work, education, business, or family reasons, a successful
+              move starts with choosing experienced international moving specialists.
+            </p>
+            <p className="lede mt-16">
+              APAC Relocation provides end-to-end international moving services for
+              individuals, families, and businesses relocating to the USA. From sea and
+              air freight to customs documentation and destination delivery, our team
+              manages every stage of your move.
             </p>
             <p className="lede mt-16">
               Plan your relocation the right way. Share your inventory, choose your
               preferred survey method, and receive accurate moving estimates from
-              trusted relocation experts.
+              trusted international movers.
             </p>
           </div>
         </div>
@@ -323,8 +329,23 @@ function QuoteBand({ values, setValues, scrollToCalc }) {
                 ? <>Real-time booking, <span className="serif">step by step.</span></>
                 : gate === "otp"
                 ? <>One quick check, <span className="serif">then your quote.</span></>
-                : <>Tell us where, <span className="serif">we'll tell you how much.</span></>}
+                : <>Tell us where you're moving. <span className="serif">We'll show you the cost.</span></>}
             </h2>
+            {!started && gate !== "otp" && (
+              <div className="quote-band-desc">
+                <p>
+                  Planning an international move? Get a real-time estimate for your{" "}
+                  <strong>move to the USA</strong> based on your destination, shipment
+                  size, moving date, and preferred shipping method.
+                </p>
+                <p>
+                  Whether you're planning a household relocation, corporate move, or
+                  long-term relocation, our instant quote tool helps you compare options
+                  and plan your <strong>international moving</strong> journey with
+                  confidence.
+                </p>
+              </div>
+            )}
           </div>
           <div className="quote-band-meta">
             <span><i />Live carrier rates</span>
@@ -424,8 +445,8 @@ function QuoteBand({ values, setValues, scrollToCalc }) {
         <div className="quote-band-foot">
           <span><span className="check">✓</span> 14-day price lock</span>
           <span><span className="check">✓</span> FIDI &amp; IAM accredited</span>
-          <span><span className="check">✓</span> FMC OTI #024681N</span>
-          <span><span className="check">✓</span> 4.94★ · 2,108 reviews</span>
+          <span><span className="check">✓</span> FMC OTI licensed</span>
+          <span><span className="check">✓</span> Verified customer reviews</span>
         </div>
         </>
         )}

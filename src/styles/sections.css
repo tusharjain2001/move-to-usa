@@ -190,6 +190,14 @@
   transition: border-color .15s ease, background .15s ease, color .15s ease;
 }
 .quote-band-home:hover { border-color: var(--gold); color: #fff; background: rgba(255,255,255,0.10); }
+.quote-band-desc {
+  max-width: 62ch;
+  margin-top: 16px;
+  color: rgba(255,255,255,0.72);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.quote-band-desc p + p { margin-top: 12px; }
 .quote-band-meta {
   display: flex; gap: 24px; flex-wrap: wrap;
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em;
