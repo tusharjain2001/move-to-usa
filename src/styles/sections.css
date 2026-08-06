@@ -353,6 +353,16 @@
 .route-side .route-code {
   font-size: 36px; letter-spacing: -0.03em; line-height: 1; margin-top: 4px;
 }
+.dest-select-wrap { position: relative; display: inline-block; margin-top: 2px; }
+.dest-select {
+  appearance: none; background: none; border: none; border-bottom: 1px dashed var(--hair-strong);
+  font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; padding: 0 18px 2px 0;
+}
+.dest-select:focus { outline: none; border-bottom-color: var(--accent); color: var(--ink); }
+.dest-select:hover { border-bottom-color: var(--accent); }
+.dest-select-arrow {
+  position: absolute; right: 0; top: 0; font-size: 14px; color: var(--muted); pointer-events: none;
+}
 .route-line { display: flex; flex-direction: column; align-items: center; color: var(--muted); }
 .route-distance { font-size: 11px; letter-spacing: 0.06em; margin-top: 4px; }
 
@@ -376,8 +386,13 @@
   background: var(--ink); color: var(--cream); border-color: var(--ink);
 }
 .mode-btn.active .mode-tag { color: rgba(255,255,255,0.6); }
-.mode-name { font-size: 14px; font-weight: 500; }
-.mode-tag { font-size: 10.5px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+/* Names stay flush left and take the remaining width; tags hug the right edge
+   so the two columns line up even when either wraps to two lines. */
+.mode-name { font-size: 14px; font-weight: 500; flex: 1 1 auto; min-width: 0; }
+.mode-tag {
+  font-size: 10.5px; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase;
+  flex: 0 0 auto; max-width: 50%; text-align: right; line-height: 1.35;
+}
 
 .range-scale {
   display: flex; justify-content: space-between;

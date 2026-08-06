@@ -11,13 +11,17 @@ import { getApacPricing, CURRENCY } from "../api/client.js";
 // Verified 5 Aug 2026: of the US ports, only Los Angeles and New York carry an
 // ocean-freight rate, so the inland/other-coast cities route via the nearer of
 // the two. These mappings need the client's sign-off.
+// The eight destinations from the client's content brief, in its order. Sea
+// transit ranges are the brief's "Estimated Transit Time" figures.
 const ROUTES = {
-  "San Francisco, CA": { code: "SFO", city: "San Francisco", port: "Los Angeles", seaDays: [28, 38] },
-  "New York, NY":      { code: "JFK", city: "New York",      port: "New York",    seaDays: [34, 45] },
-  "Seattle, WA":       { code: "SEA", city: "Seattle",       port: "Los Angeles", seaDays: [24, 32] },
-  "Los Angeles, CA":   { code: "LAX", city: "Los Angeles",   port: "Los Angeles", seaDays: [26, 34] },
-  "Boston, MA":        { code: "BOS", city: "Boston",        port: "New York",    seaDays: [36, 47] },
-  "Austin, TX":        { code: "AUS", city: "Austin",        port: "Los Angeles", seaDays: [38, 50] },
+  "New York, NY":      { code: "JFK", city: "New York",      port: "New York",    seaDays: [28, 42], airDays: [7, 10] },
+  "Los Angeles, CA":   { code: "LAX", city: "Los Angeles",   port: "Los Angeles", seaDays: [20, 35], airDays: [6, 9] },
+  "San Francisco, CA": { code: "SFO", city: "San Francisco", port: "Los Angeles", seaDays: [20, 35], airDays: [6, 9] },
+  "Seattle, WA":       { code: "SEA", city: "Seattle",       port: "Los Angeles", seaDays: [22, 36], airDays: [5, 8] },
+  "Austin, TX":        { code: "AUS", city: "Austin",        port: "Los Angeles", seaDays: [25, 40], airDays: [8, 11] },
+  "Chicago, IL":       { code: "ORD", city: "Chicago",       port: "New York",    seaDays: [28, 42], airDays: [8, 11] },
+  "Miami, FL":         { code: "MIA", city: "Miami",         port: "New York",    seaDays: [30, 45], airDays: [9, 12] },
+  "Boston, MA":        { code: "BOS", city: "Boston",        port: "New York",    seaDays: [30, 45], airDays: [8, 11] },
 };
 
 // Shown by the calculator and sticky bar before a destination has been entered.
@@ -26,12 +30,18 @@ const FALLBACK_DEST = "San Francisco, CA";
 const TO_COUNTRY = "United States";
 const CALC_ORIGIN = { code: "SIN", city: "Singapore", port: "Singapore", country: "Singapore" };
 
-// The pricing endpoint is SEA-only, so the calculator offers the two sea modes.
+// Five shipping options per the client's content brief. Only the two sea modes
+// can be priced online — get-pricing-with-split-for-apac hardcodes
+// shipment_mode: "SEA", so air / express / combined fall back to a quote
+// request rather than showing a sea price under an air label.
 const MODES = [
-  { id: "fcl", label: "Sea — Full container", tag: "Best for full home", speedMul: 1.0,
+  { id: "air", label: "Air Freight", tag: "Fastest delivery", speedMul: 1.0, usesAir: true },
+  { id: "express", label: "Express Courier", tag: "Priority shipments", speedMul: 0.85, usesAir: true },
+  { id: "fcl", label: "Sea Freight (Full Container)", tag: "Best for complete household moves", speedMul: 1.0,
     containerType: "FT_40", shipmentType: "FCL", movingType: "FULL_HOUSEHOLD" },
-  { id: "lcl", label: "Sea — Shared (LCL)", tag: "Most affordable", speedMul: 1.08,
+  { id: "lcl", label: "Sea Freight (Shared Container)", tag: "Cost-effective solution", speedMul: 1.08,
     containerType: "FT_20", shipmentType: "CONSOLE", movingType: "PARTIAL_HOUSEHOLD" },
+  { id: "combo", label: "Air + Sea Combination", tag: "Essential items first", speedMul: 0.95 },
 ];
 
 function useAnimatedNumber(target, ms = 600) {
@@ -95,6 +105,7 @@ function Calculator({ quoteState, setQuoteState }) {
   const [mode, setMode] = useState("fcl");
   const [volume, setVolume] = useState(35);
   const [insurance, setInsurance] = useState(true);
+  const [storage, setStorage] = useState(false);
   const [packing, setPacking] = useState("full");
   const [unpacking, setUnpacking] = useState(true);
 
@@ -112,6 +123,14 @@ function Calculator({ quoteState, setQuoteState }) {
 
   useEffect(() => {
     let alive = true;
+    // Air / express / combined have no online rate source — don't call the sea
+    // endpoint for them, it would return a sea price under an air label.
+    if (!m.shipmentType) {
+      setPricing(null);
+      setLoading(false);
+      setError("Online rates are available for sea freight. For air, express, or combined shipping, request a tailored quote and a move manager will price it for you.");
+      return;
+    }
     setLoading(true);
     setError("");
     const t = setTimeout(async () => {
@@ -164,20 +183,21 @@ function Calculator({ quoteState, setQuoteState }) {
   const totalAnim = useAnimatedNumber(pricing ? Math.round(pricing.total) : 0);
 
   // Timeline build-up (local — the pricing API doesn't return transit times)
-  const transitDays = Math.round((route.seaDays[0] + route.seaDays[1]) / 2 * m.speedMul);
+  const days = m.usesAir ? route.airDays : route.seaDays;
+  const transitDays = Math.round((days[0] + days[1]) / 2 * m.speedMul);
 
   const phases = [
-    { name: "Survey & quote", start: 0, end: 3, color: "var(--sage)" },
-    { name: "Pack & inventory", start: 3, end: packing === "full" ? 6 : 5, color: "var(--ink)" },
-    { name: "Origin customs", start: packing === "full" ? 6 : 5, end: (packing === "full" ? 6 : 5) + 2, color: "var(--muted)" },
-    { name: "Sea freight transit",
+    { name: "Initial Consultation & Survey", start: 0, end: 3, color: "var(--sage)" },
+    { name: "Move Planning & Documentation", start: 3, end: packing === "full" ? 6 : 5, color: "var(--ink)" },
+    { name: "Packing & Inventory Preparation", start: packing === "full" ? 6 : 5, end: (packing === "full" ? 6 : 5) + 2, color: "var(--muted)" },
+    { name: "International Shipping",
       start: (packing === "full" ? 6 : 5) + 2,
       end: (packing === "full" ? 6 : 5) + 2 + transitDays,
       color: "var(--accent)" },
-    { name: "US customs & clearance",
+    { name: "Customs Clearance",
       start: (packing === "full" ? 6 : 5) + 2 + transitDays,
       end: (packing === "full" ? 6 : 5) + 2 + transitDays + 3, color: "var(--muted)" },
-    { name: "Delivery & unpack",
+    { name: "Delivery & Unpacking",
       start: (packing === "full" ? 6 : 5) + 2 + transitDays + 3,
       end: (packing === "full" ? 6 : 5) + 2 + transitDays + 3 + (unpacking ? 2 : 1), color: "var(--ink)" },
   ];
@@ -188,8 +208,8 @@ function Calculator({ quoteState, setQuoteState }) {
       <div className="wrap">
         <SectionHeader
           kicker="LIVE CALCULATOR · 03"
-          title="Real-time shipping cost & timeline."
-          lede="Every number is computed from current carrier rates, port congestion, and customs lead times. Adjust the move and watch the estimate move with you."
+          title="Real-time shipping costs & transit timelines."
+          lede="Compare estimated shipping costs and delivery timelines to some of the most popular destinations in the United States. Costs are calculated based on shipment volume, transport method, destination city, and current market conditions."
         />
 
         <div className="calc-shell mt-48">
@@ -206,12 +226,28 @@ function Calculator({ quoteState, setQuoteState }) {
                   <circle cx="2" cy="12" r="2" fill="currentColor" />
                   <path d="M115 8 L120 12 L115 16" fill="none" stroke="currentColor" strokeWidth="1" />
                 </svg>
-                <div className="mono route-distance">9,720 mi · sea</div>
+                {/* Transit shown as the brief's range for the selected city, not
+                    a single averaged figure. */}
+                <div className="mono route-distance">
+                  {days[0]}–{days[1]} days · {m.usesAir ? "air" : m.id === "combo" ? "multi-modal" : "sea"}
+                </div>
               </div>
               <div className="route-side">
                 <div className="text-mono-sm">DESTINATION</div>
                 <div className="route-code mono">{route.code}</div>
-                <div className="muted" style={{ fontSize: 13 }}>{destKey.split(",")[0]}</div>
+                <div className="dest-select-wrap">
+                  <select
+                    className="dest-select muted"
+                    value={destKey}
+                    aria-label="Destination city"
+                    onChange={(e) => setQuoteState((s) => ({ ...s, dest: e.target.value }))}
+                  >
+                    {Object.keys(ROUTES).map((k) => (
+                      <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
+                  <span className="dest-select-arrow">▾</span>
+                </div>
               </div>
             </div>
 
@@ -241,17 +277,17 @@ function Calculator({ quoteState, setQuoteState }) {
               <input className="range" type="range" min="8" max="80" step="1"
                 value={volume} onChange={(e) => setVolume(Number(e.target.value))} />
               <div className="range-scale mono">
-                <span>Studio</span><span>1-bed</span><span>2-bed</span><span>3-bed</span><span>4-bed+</span>
+                <span>Studio</span><span>1 Bedroom</span><span>2 Bedroom</span><span>3 Bedroom</span><span>4 Bedroom+</span>
               </div>
             </div>
 
             <div className="ctrl-grp">
-              <div className="ctrl-h">Origin services</div>
+              <div className="ctrl-h">Additional services</div>
               <div className="seg">
                 {[
                   { id: "self", lbl: "Self pack" },
-                  { id: "fragile", lbl: "Fragile only" },
-                  { id: "full", lbl: "Full pack" },
+                  { id: "fragile", lbl: "Fragile protection" },
+                  { id: "full", lbl: "Professional packing" },
                 ].map((o) => (
                   <button key={o.id} className={packing === o.id ? "on" : ""} onClick={() => setPacking(o.id)}>
                     {o.lbl}
@@ -264,13 +300,19 @@ function Calculator({ quoteState, setQuoteState }) {
               <div className="checkrow">
                 <label>
                   <input type="checkbox" checked={unpacking} onChange={(e) => setUnpacking(e.target.checked)} />
-                  <span>Destination unpack &amp; debris removal</span>
+                  <span>Destination unpacking</span>
+                </label>
+              </div>
+              <div className="checkrow">
+                <label>
+                  <input type="checkbox" checked={storage} onChange={(e) => setStorage(e.target.checked)} />
+                  <span>Storage solutions</span>
                 </label>
               </div>
               <div className="checkrow">
                 <label>
                   <input type="checkbox" checked={insurance} onChange={(e) => setInsurance(e.target.checked)} />
-                  <span>All-risk transit insurance (2.5%)</span>
+                  <span>Transit insurance</span>
                 </label>
               </div>
             </div>
@@ -339,8 +381,9 @@ function Calculator({ quoteState, setQuoteState }) {
               <GanttTimeline phases={phases} totalDays={totalDays} />
               <div className="calc-foot">
                 <div className="muted" style={{ fontSize: 13, maxWidth: "52ch" }}>
-                  Timeline reflects current ETAs for {route.code} from Singapore. Move managers
-                  rebuild your plan every Monday until departure.
+                  Every estimate is designed to help individuals, families, and businesses plan
+                  their <strong>international moving</strong> journey and{" "}
+                  <strong>relocate to the USA</strong> with confidence.
                 </div>
                 <button className="btn primary">
                   Reserve this slot <span className="arr">→</span>
@@ -349,6 +392,7 @@ function Calculator({ quoteState, setQuoteState }) {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
