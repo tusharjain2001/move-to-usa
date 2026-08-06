@@ -6,27 +6,27 @@ import { SectionHeader } from "./chrome.jsx";
 const SERVICES = [
   {
     n: "01",
-    title: "Pre-move survey",
-    body: "Virtual or in-home walkthrough in Singapore. Inventory, customs paperwork, and a fixed quote within 48 hours.",
-    bullets: ["Video or in-home", "48h fixed quote", "Bilingual surveyor"],
+    title: "Relocation Planning",
+    body: "Every successful move starts with a detailed consultation. Our specialists assess your requirements, shipment volume, destination, and timeline before creating a customized relocation plan.",
+    bullets: ["Virtual or in-home survey", "Personal move coordinator", "Tailored relocation plan"],
   },
   {
     n: "02",
-    title: "Packing & loading",
-    body: "FIDI-grade packing crews. Export-grade cartons, custom crates for art and pianos, full digital inventory.",
-    bullets: ["Photo inventory", "Fragile crating", "Same-day loading"],
+    title: "Professional Packing",
+    body: "Our experienced packing teams use export-grade materials and proven packing techniques to protect household goods, personal belongings, and valuable items during international transit.",
+    bullets: ["Export-quality packing", "Custom crating solutions", "Detailed inventory management"],
   },
   {
     n: "03",
-    title: "Freight & customs",
-    body: "Air, FCL, LCL or hybrid. We hold a Singapore CR licence and US FMC bond — no third-party broker required.",
-    bullets: ["FMC OTI #024681N", "US ISF + AMS", "DDP terms available"],
+    title: "International Shipping",
+    body: "Flexible air freight and sea freight solutions designed around your schedule, budget, and relocation requirements.",
+    bullets: ["Air & sea freight options", "Customs documentation guidance", "Real-time shipment tracking"],
   },
   {
     n: "04",
-    title: "Delivery & unpack",
-    body: "US-licensed delivery partners in every major metro. Unpacked, assembled, and debris removed — same day.",
-    bullets: ["37 ports of entry", "White-glove unpack", "Settle-in concierge"],
+    title: "Destination Services",
+    body: "From delivery and unpacking to pet relocation, excess baggage support, and settling-in assistance, we help make your transition to the USA as seamless as possible.",
+    bullets: ["Door-to-door delivery", "Pet relocation support", "Excess baggage shipping", "Storage solutions"],
   },
 ];
 
@@ -38,14 +38,14 @@ function Services() {
           <div>
             <div className="eyebrow">DOOR · TO · DOOR · 02</div>
             <h2 className="h1 mt-16">
-              One team. <span className="serif">One contract.</span><br />
-              From your flat to your front door.
+              Complete relocation support.<br />
+              <span className="serif">From planning to settling in.</span>
             </h2>
           </div>
           <p className="lede" style={{ maxWidth: 44 + "ch" }}>
-            Every APAC Relocation move is owned by a single dedicated move manager.
-            No handoffs between agents, freight forwarders, or local movers — just one
-            number, one invoice, one timeline.
+            Every APAC Relocation move is managed by a dedicated relocation specialist.
+            From the initial survey to final delivery, we coordinate every stage of your
+            international move, ensuring a smooth, stress-free relocation experience.
           </p>
         </div>
 
