@@ -1,6 +1,12 @@
 import React, { useState } from "react";
-import { SectionHeader, Placeholder } from "./chrome.jsx";
-import sanFranciscoPhoto from "../assets/sanfrancisco.jpeg";
+import { SectionHeader } from "./chrome.jsx";
+// Client-supplied city photography (src/assets/country images/).
+import sanFranciscoPhoto from "../assets/country images/San Francisco.jpeg";
+import seattlePhoto from "../assets/country images/SEATTLE.jpeg";
+import losAngelesPhoto from "../assets/country images/LOS ANGELES.jpeg";
+import austinPhoto from "../assets/country images/AUSTIN.jpeg";
+import bostonPhoto from "../assets/country images/BOSTON.jpeg";
+import newYorkPhoto from "../assets/country images/NEW YORK.jpeg";
 
 // Visa option comparison cards (filterable) + Popular USA destinations (clickable cards with details).
 
@@ -209,6 +215,7 @@ const DEST = [
     city: "Seattle",
     state: "Washington",
     code: "SEA",
+    photo: seattlePhoto,
     coord: { x: 10, y: 18 },
     transit: "24–32 days",
     air: "5–8 days",
@@ -224,6 +231,7 @@ const DEST = [
     city: "Los Angeles",
     state: "California",
     code: "LAX",
+    photo: losAngelesPhoto,
     coord: { x: 9, y: 58 },
     transit: "26–34 days",
     air: "6–9 days",
@@ -239,6 +247,7 @@ const DEST = [
     city: "Austin",
     state: "Texas",
     code: "AUS",
+    photo: austinPhoto,
     coord: { x: 47, y: 75 },
     transit: "38–50 days",
     air: "8–11 days",
@@ -254,6 +263,7 @@ const DEST = [
     city: "Boston",
     state: "Massachusetts",
     code: "BOS",
+    photo: bostonPhoto,
     coord: { x: 86, y: 24 },
     transit: "36–47 days",
     air: "8–11 days",
@@ -269,6 +279,7 @@ const DEST = [
     city: "New York",
     state: "New York",
     code: "JFK",
+    photo: newYorkPhoto,
     coord: { x: 84, y: 30 },
     transit: "34–45 days",
     air: "7–10 days",
@@ -357,25 +368,13 @@ function Destinations() {
           </div>
 
           <div className="dest-detail">
-            {/* Only San Francisco has a real photo so far — the other five keep
-                the placeholder rather than borrow a picture of another city. */}
             <div className="dest-photo">
-              {d.photo ? (
-                <>
-                  <img
-                    src={d.photo}
-                    alt={`${d.city}, ${d.state} — popular destination for international moves from Singapore`}
-                    loading="lazy"
-                  />
-                  <span className="dest-photo-corner mono">SIN→{d.code}</span>
-                </>
-              ) : (
-                <Placeholder
-                  ratio="wide"
-                  corner={`SIN→${d.code}`}
-                  label={`Editorial photo · ${d.city} skyline`}
-                />
-              )}
+              <img
+                src={d.photo}
+                alt={`${d.city}, ${d.state} — popular destination for international moves from Singapore`}
+                loading="lazy"
+              />
+              <span className="dest-photo-corner mono">SIN→{d.code}</span>
             </div>
             <div className="dest-detail-body card">
               <div className="between">

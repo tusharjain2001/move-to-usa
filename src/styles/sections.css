@@ -802,13 +802,18 @@
 .pet-left { padding: 48px; }
 .pet-right { position: relative; padding: 0; }
 .pet-right .placeholder { height: 100%; width: 100%; border: 0; border-radius: 0; }
-.pet-photo { display: block; width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; }
+/* The client's pet artwork is a landscape banner with its own logo and headline
+   baked in — render it whole rather than cover-cropping it to a portrait slot. */
+.pet-photo { display: block; width: 100%; height: auto; border-radius: var(--r-md); }
 .pet-stats { display: flex; gap: 32px; flex-wrap: wrap; }
 .pet-stat {
   font-size: 28px; letter-spacing: -0.02em; color: var(--ink); margin-right: 6px;
 }
+/* Sits below the banner rather than over it — the artwork carries its own
+   footer strip and QR code that an overlay would cover. */
 .pet-badge {
-  position: absolute; right: 24px; bottom: 24px;
+  margin: 16px 0 0 auto;
+  width: fit-content;
   background: var(--paper); padding: 16px 20px;
   border-radius: var(--r-md); border: 1px solid var(--hair);
   box-shadow: var(--shadow-md);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { SectionHeader } from "./chrome.jsx";
-import petPhoto from "../assets/petrelocation.jpeg";
+import petPhoto from "../assets/country images/IATA, PET RELOCATION.jpeg";
 import guidePhoto from "../assets/guide.jpeg";
 import checklistPhoto from "../assets/checklist.jpeg";
 import livingAbroadPhoto from "../assets/living abroad.jpeg";
