@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SectionHeader } from "./chrome.jsx";
+import { SectionHeader, Placeholder } from "./chrome.jsx";
 // Client-supplied city photography (src/assets/country images/).
 import sanFranciscoPhoto from "../assets/country images/San Francisco.jpeg";
 import seattlePhoto from "../assets/country images/SEATTLE.jpeg";
@@ -240,7 +240,41 @@ function Visa() {
 
 // ── Destinations ──────────────────────────────────────────────────────────────
 
+// Order follows the client's content document. Cities without a client-supplied
+// photo fall back to the original Placeholder tile until artwork arrives.
 const DEST = [
+  {
+    city: "New York",
+    state: "New York",
+    code: "JFK",
+    photo: newYorkPhoto,
+    coord: { x: 84, y: 30 },
+    transit: "34–45 days",
+    air: "7–10 days",
+    avgCost: "SGD 8,600",
+    population: "20.1M metro",
+    climate: "Variable · 28–85°F",
+    apac: "14% APAC heritage",
+    why: "A global center for finance, business, media, and culture. New York remains one of the most sought-after destinations for professionals, entrepreneurs, and international families.",
+    highlights: ["Global business opportunities", "Diverse communities", "World-class education", "Extensive public transport"],
+    accent: "var(--ink)",
+  },
+  {
+    city: "Los Angeles",
+    state: "California",
+    code: "LAX",
+    photo: losAngelesPhoto,
+    coord: { x: 9, y: 58 },
+    transit: "26–34 days",
+    air: "6–9 days",
+    avgCost: "SGD 8,200",
+    population: "13M metro",
+    climate: "Warm · 60–85°F",
+    apac: "16% APAC heritage",
+    why: "Known for its entertainment industry, technology sector, and year-round lifestyle, Los Angeles attracts professionals and families from around the world.",
+    highlights: ["Strong job market", "International community", "Technology & creative industries", "Lifestyle & climate benefits"],
+    accent: "var(--gold)",
+  },
   {
     city: "San Francisco",
     state: "California",
@@ -253,8 +287,8 @@ const DEST = [
     population: "7.7M metro",
     climate: "Mild · 50–70°F",
     apac: "37% APAC heritage",
-    why: "Bay Area tech corridor. Largest APAC professional community in the US.",
-    neighborhoods: ["Mission Bay", "Sunset", "Palo Alto", "Mountain View"],
+    why: "A leading destination for innovation, entrepreneurship, and technology professionals relocating to the United States.",
+    highlights: ["Technology hub", "Startup ecosystem", "Global workforce", "Innovation-driven economy"],
     accent: "var(--accent)",
   },
   {
@@ -269,25 +303,9 @@ const DEST = [
     population: "4.0M metro",
     climate: "Cool · 45–70°F",
     apac: "20% APAC heritage",
-    why: "Amazon, Microsoft, Boeing. Direct 12hr Singapore Airlines flight.",
-    neighborhoods: ["Bellevue", "Capitol Hill", "Redmond", "Queen Anne"],
+    why: "Home to some of the world's largest employers, Seattle offers strong career opportunities and a high quality of life.",
+    highlights: ["Technology sector", "Growing economy", "Family-friendly communities", "International workforce"],
     accent: "var(--sage)",
-  },
-  {
-    city: "Los Angeles",
-    state: "California",
-    code: "LAX",
-    photo: losAngelesPhoto,
-    coord: { x: 9, y: 58 },
-    transit: "26–34 days",
-    air: "6–9 days",
-    avgCost: "SGD 8,200",
-    population: "13M metro",
-    climate: "Warm · 60–85°F",
-    apac: "16% APAC heritage",
-    why: "Entertainment, biotech, creator economy. Largest APAC diaspora in the US.",
-    neighborhoods: ["Pasadena", "Irvine", "Culver City", "Westwood"],
-    accent: "var(--gold)",
   },
   {
     city: "Austin",
@@ -301,9 +319,25 @@ const DEST = [
     population: "2.4M metro",
     climate: "Hot · 50–95°F",
     apac: "8% APAC heritage",
-    why: "Texas tech triangle. No state income tax. Tesla, Oracle, Apple campuses.",
-    neighborhoods: ["West Lake Hills", "Round Rock", "Mueller", "Cedar Park"],
+    why: "One of the fastest-growing cities in the United States, known for innovation, affordability, and career growth opportunities.",
+    highlights: ["Expanding job market", "Business-friendly environment", "Strong technology sector", "Quality lifestyle"],
     accent: "var(--accent)",
+  },
+  {
+    city: "Chicago",
+    state: "Illinois",
+    code: "ORD",
+    photo: null,
+    coord: { x: 62, y: 26 },
+    transit: "36–48 days",
+    air: "8–11 days",
+    avgCost: "SGD 8,800",
+    population: "9.5M metro",
+    climate: "Variable · 20–85°F",
+    apac: "7% APAC heritage",
+    why: "A major financial, logistics, and commercial center offering excellent career opportunities and diverse neighborhoods.",
+    highlights: ["International business hub", "Strong transport network", "Cultural diversity", "Affordable housing options"],
+    accent: "var(--sage)",
   },
   {
     city: "Boston",
@@ -317,25 +351,57 @@ const DEST = [
     population: "4.9M metro",
     climate: "Variable · 30–80°F",
     apac: "11% APAC heritage",
-    why: "MIT, Harvard, biotech corridor. Strongest US healthcare cluster.",
-    neighborhoods: ["Cambridge", "Brookline", "Newton", "Lexington"],
-    accent: "var(--sage)",
+    why: "Popular among students, researchers, healthcare professionals, and families seeking access to leading educational institutions.",
+    highlights: ["World-renowned universities", "Healthcare sector", "Research opportunities", "Historic neighbourhoods"],
+    accent: "var(--gold)",
   },
   {
-    city: "New York",
-    state: "New York",
-    code: "JFK",
-    photo: newYorkPhoto,
-    coord: { x: 84, y: 30 },
-    transit: "34–45 days",
-    air: "7–10 days",
+    city: "Miami",
+    state: "Florida",
+    code: "MIA",
+    photo: null,
+    coord: { x: 84, y: 58 },
+    transit: "38–50 days",
+    air: "9–12 days",
+    avgCost: "SGD 9,000",
+    population: "6.2M metro",
+    climate: "Warm · 60–90°F",
+    apac: "2% APAC heritage",
+    why: "A vibrant international city with strong business connections, multicultural communities, and attractive lifestyle opportunities.",
+    highlights: ["International gateway city", "Growing business community", "Warm climate", "Diverse population"],
+    accent: "var(--accent)",
+  },
+  {
+    city: "Houston",
+    state: "Texas",
+    code: "IAH",
+    photo: null,
+    coord: { x: 53, y: 73 },
+    transit: "36–48 days",
+    air: "9–12 days",
     avgCost: "SGD 8,600",
-    population: "20.1M metro",
-    climate: "Variable · 28–85°F",
-    apac: "14% APAC heritage",
-    why: "Global finance, fashion, media. Densest APAC professional network east of SF.",
-    neighborhoods: ["Jersey City", "Long Island City", "Flushing", "Edison NJ"],
+    population: "7.5M metro",
+    climate: "Hot · 45–95°F",
+    apac: "8% APAC heritage",
+    why: "A leading destination for professionals working in energy, engineering, healthcare, and international trade.",
+    highlights: ["Energy industry hub", "Affordable living", "Career opportunities", "International community"],
     accent: "var(--ink)",
+  },
+  {
+    city: "Washington",
+    state: "District of Columbia",
+    code: "IAD",
+    photo: null,
+    coord: { x: 82, y: 37 },
+    transit: "36–47 days",
+    air: "8–11 days",
+    avgCost: "SGD 8,800",
+    population: "6.4M metro",
+    climate: "Variable · 30–88°F",
+    apac: "11% APAC heritage",
+    why: "A preferred destination for professionals working in government, consulting, policy, and international organizations.",
+    highlights: ["Government sector", "International organizations", "Professional networking", "Career development opportunities"],
+    accent: "var(--sage)",
   },
 ];
 
@@ -347,15 +413,28 @@ function Destinations() {
       <div className="wrap">
         <SectionHeader
           kicker="POPULAR · DESTINATIONS · 07"
-          title="Where APAC families land in 2026."
-          lede="The six US metros our Singapore office sees most often, ranked by move volume. Tap a pin or card to compare."
+          title="Popular cities for relocating to the USA."
+          lede={
+            <>
+              <p>
+                From major business hubs and technology centers to family-friendly
+                communities and university cities, the United States offers a wide range of
+                destinations for individuals, families, students, and professionals
+                planning an international move.
+              </p>
+              <p className="mt-16">
+                Explore some of the most popular destinations chosen by customers
+                relocating to the USA. Tap a pin or card to compare.
+              </p>
+            </>
+          }
         />
 
         <div className="dest-shell mt-48">
           <div className="dest-map card">
             <div className="dest-map-hd between">
-              <div className="text-mono-sm">UNITED STATES · MOVE VOLUME</div>
-              <div className="text-mono-sm">2025 Q4 · Singapore origin</div>
+              <div className="text-mono-sm">UNITED STATES · POPULAR DESTINATIONS</div>
+              <div className="text-mono-sm">Singapore origin</div>
             </div>
             <div className="us-map">
               <svg viewBox="0 0 100 70" preserveAspectRatio="none" className="us-map-svg">
@@ -415,12 +494,18 @@ function Destinations() {
 
           <div className="dest-detail">
             <div className="dest-photo">
-              <img
-                src={d.photo}
-                alt={`${d.city}, ${d.state} — popular destination for international moves from Singapore`}
-                loading="lazy"
-              />
-              <span className="dest-photo-corner mono">SIN→{d.code}</span>
+              {d.photo ? (
+                <>
+                  <img
+                    src={d.photo}
+                    alt={`${d.city}, ${d.state} — popular destination for international moves from Singapore`}
+                    loading="lazy"
+                  />
+                  <span className="dest-photo-corner mono">SIN→{d.code}</span>
+                </>
+              ) : (
+                <Placeholder label={`${d.city.toUpperCase()} — PHOTO`} ratio="wide" corner={`SIN→${d.code}`} />
+              )}
             </div>
             <div className="dest-detail-body card">
               <div className="between">
@@ -458,10 +543,10 @@ function Destinations() {
               </div>
 
               <div className="mt-24">
-                <div className="text-mono-sm mb-8">POPULAR NEIGHBORHOODS</div>
+                <div className="text-mono-sm mb-8">HIGHLIGHTS</div>
                 <div className="dest-tags">
-                  {d.neighborhoods.map((n) => (
-                    <span key={n} className="chip">{n}</span>
+                  {d.highlights.map((h) => (
+                    <span key={h} className="chip"><span className="mono">✓</span> {h}</span>
                   ))}
                 </div>
               </div>
@@ -476,6 +561,16 @@ function Destinations() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="card mt-48">
+          <h3 className="h3">Find the right destination for your move</h3>
+          <p className="muted mt-12" style={{ fontSize: 15, lineHeight: 1.55, maxWidth: 70 + "ch" }}>
+            Whether you're planning an international moving journey, looking to move to the
+            USA for career opportunities, or relocating your family for a better lifestyle,
+            our relocation specialists can help you choose the destination that best suits
+            your goals.
+          </p>
         </div>
       </div>
     </section>
