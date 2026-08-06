@@ -9,6 +9,77 @@ import { ROUTES } from "./calculator.jsx";
 
 // Pet teaser + animated stats + FAQ accordion + Contact form + Sticky quote widget.
 
+// The five stages of a pet move, per the client's content document. Rendered with
+// the same card pattern as section 04 so no new layout is introduced.
+const PET_SERVICES = [
+  {
+    key: "planning",
+    title: "Pet travel planning",
+    body: "Every destination has specific requirements for importing pets. Our team helps you understand travel timelines, documentation requirements, and transportation options before your move begins.",
+    bullets: ["Personalized relocation planning", "Destination-specific guidance", "Travel coordination", "Relocation support"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="5" width="18" height="16" rx="2.5" />
+        <path d="M3 10h18" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="M9 15l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    key: "docs",
+    title: "Documentation & compliance",
+    body: "International pet travel often requires specific documentation and approvals. We help you prepare the necessary paperwork required for relocation to the United States.",
+    bullets: ["Import documentation guidance", "Travel documentation support", "Compliance assistance", "Relocation coordination"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+        <path d="M14 3v5h5" />
+        <path d="M9 13h6" />
+        <path d="M9 17h4" />
+      </svg>
+    ),
+  },
+  {
+    key: "health",
+    title: "Health & veterinary requirements",
+    body: "Preparing your pet for international travel includes meeting health and vaccination requirements before departure.",
+    bullets: ["Vaccination guidance", "Veterinary documentation support", "Travel preparation assistance", "Health compliance guidance"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 20.5S4 15.4 4 9.9A4.4 4.4 0 0 1 12 7.3 4.4 4.4 0 0 1 20 9.9c0 5.5-8 10.6-8 10.6z" />
+        <path d="M12 10v5" />
+        <path d="M9.5 12.5h5" />
+      </svg>
+    ),
+  },
+  {
+    key: "transport",
+    title: "Pet transportation",
+    body: "Our specialists coordinate transportation solutions designed to prioritize the safety and comfort of your pets throughout the journey.",
+    bullets: ["International pet transportation", "Airline coordination", "Travel crate guidance", "Journey planning"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16v-2l-8-5V4a1.5 1.5 0 0 0-3 0v5l-8 5v2l8-2.5V19l-2.5 1.5V22l4-1 4 1v-1.5L13 19v-4.5z" />
+      </svg>
+    ),
+  },
+  {
+    key: "arrival",
+    title: "Arrival support",
+    body: "Upon arrival, we help ensure a smooth transition by providing guidance on destination requirements and relocation procedures.",
+    bullets: ["Arrival coordination", "Relocation assistance", "Destination support", "Family relocation guidance"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 10.5L12 3l9 7.5" />
+        <path d="M5.5 9.8V20h13V9.8" />
+        <path d="M9.5 20v-5.5h5V20" />
+      </svg>
+    ),
+  },
+];
+
 function PetTeaser() {
   return (
     <section className="band cream" id="pets">
@@ -17,14 +88,22 @@ function PetTeaser() {
           <div className="pet-left">
             <div className="eyebrow">PET · RELOCATION · 08</div>
             <h2 className="h1 mt-16">
-              The whole family flies.<br />
-              <span className="serif">Pets included.</span>
+              Moving to the USA<br />
+              <span className="serif">with pets.</span>
             </h2>
-            <p className="lede mt-24" style={{ maxWidth: 46 + "ch" }}>
-              IATA Live Animal Regulations certified. We handle the rabies titre tests,
-              USDA endorsements, in-cabin paperwork, and custom-built crates.
-              For dogs, cats, birds, and the occasional rabbit.
-            </p>
+            {/* div, not p — the document's intro runs to two paragraphs. */}
+            <div className="lede mt-24" style={{ maxWidth: 46 + "ch" }}>
+              <p>
+                For many families, pets are an important part of the relocation journey.
+                Moving internationally with pets requires careful planning, documentation,
+                health compliance, and transportation arrangements to ensure a safe and
+                comfortable transition.
+              </p>
+              <p className="mt-16">
+                Our pet relocation specialists help coordinate every stage of your pet's
+                journey, so you can focus on your move while we handle the logistics.
+              </p>
+            </div>
             <div className="pet-stats mt-24">
               <div><span className="mono pet-stat">2,400+</span><span className="muted"> pets moved</span></div>
               <div><span className="mono pet-stat">0</span><span className="muted"> incidents since 2019</span></div>
@@ -51,6 +130,32 @@ function PetTeaser() {
               <div className="muted" style={{ fontSize: 12 }}>Mid-size dog, SIN → SFO, all-in</div>
             </div>
           </div>
+        </div>
+
+        <div className="our-services-grid mt-32">
+          {PET_SERVICES.map((s) => (
+            <article key={s.key} className="our-svc-card">
+              <div className="our-svc-icon">{s.icon}</div>
+              <h3 className="h3 mt-32">{s.title}</h3>
+              <p className="muted mt-12" style={{ fontSize: 15, lineHeight: 1.55 }}>
+                {s.body}
+              </p>
+              <ul className="svc-bullets mt-24">
+                {s.bullets.map((b) => (
+                  <li key={b}><span className="mono">✓</span> {b}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+
+        <div className="card mt-32">
+          <h3 className="h3">Relocating your entire family</h3>
+          <p className="muted mt-12" style={{ fontSize: 15, lineHeight: 1.55, maxWidth: 70 + "ch" }}>
+            Whether you're planning an international moving journey with household goods,
+            personal belongings, or family pets, our relocation specialists help coordinate
+            every aspect of your move to make the transition as smooth as possible.
+          </p>
         </div>
       </div>
     </section>
@@ -88,40 +193,100 @@ function CountUp({ to, suffix = "", duration = 1400, decimals = 0 }) {
   return <span ref={ref} className="mono">{formatted}{suffix}</span>;
 }
 
+// "Dedicated" has no number to count up to, so cells carry an optional `text`
+// that renders in place of the CountUp animation.
+const STATS = [
+  {
+    value: 10000, suffix: "+",
+    label: "International relocations managed",
+    note: "Supporting individuals, families, and businesses with professional relocation services worldwide.",
+  },
+  {
+    value: 3500, suffix: "+",
+    label: "Moves to the USA coordinated",
+    note: "Helping customers successfully relocate to major destinations across the United States.",
+  },
+  {
+    value: 50, suffix: "+",
+    label: "US cities served",
+    note: "Supporting relocations to leading business, education, and lifestyle destinations throughout the country.",
+  },
+  {
+    value: 98, suffix: "%",
+    label: "On-time move coordination",
+    note: "Carefully planned logistics and dedicated move management help keep relocations on schedule.",
+  },
+  {
+    value: 4.9, decimals: 1, suffix: "★",
+    label: "Customer satisfaction rating",
+    note: "Consistently delivering positive relocation experiences through personalized support and professional service.",
+  },
+  {
+    text: "Dedicated",
+    label: "Relocation specialists",
+    note: "Experienced move managers provide guidance throughout every stage of the relocation process.",
+  },
+];
+
+const WHY_APAC = [
+  "Personalized relocation planning",
+  "Professional international moving services",
+  "Air and sea freight solutions",
+  "Customs documentation support",
+  "Pet relocation assistance",
+  "Global relocation network",
+  "Dedicated move management",
+  "Destination support services",
+];
+
 function Stats() {
-  const stats = [
-    { value: 12840, suffix: "", label: "Families moved", note: "Since 2014" },
-    { value: 4.94, decimals: 2, suffix: "", label: "Verified rating", note: "2,108 reviews" },
-    { value: 96.3, decimals: 1, suffix: "%", label: "On-time delivery", note: "Last 12 months" },
-    { value: 37, suffix: "", label: "US ports of entry", note: "Full clearance" },
-    { value: 0, suffix: "", label: "Hidden fees", note: "Fixed-price guarantee" },
-    { value: 48, suffix: "h", label: "Quote turnaround", note: "Avg post-survey" },
-  ];
   return (
     <section className="band ink stats">
       <div className="wrap">
-        <div className="between" style={{ flexWrap: "wrap", gap: 16 }}>
-          <div className="eyebrow" style={{ color: "var(--gold)" }}>BY THE NUMBERS · 09</div>
-          <div className="mono text-mono-sm" style={{ color: "rgba(246,242,236,0.6)" }}>
-            VERIFIED 2025 · INDEPENDENT AUDIT
-          </div>
-        </div>
-        <h2 className="h1 mt-24" style={{ maxWidth: 24 + "ch" }}>
-          The kind of operating record<br />
-          <span className="serif" style={{ color: "var(--gold)" }}>you can plan a life around.</span>
+        <div className="eyebrow" style={{ color: "var(--gold)" }}>BY THE NUMBERS · 09</div>
+        <h2 className="h1 mt-24" style={{ maxWidth: 30 + "ch" }}>
+          Trusted by families, professionals<br />
+          <span className="serif" style={{ color: "var(--gold)" }}>
+            &amp; businesses moving to the USA.
+          </span>
         </h2>
+        <div className="lede mt-24" style={{ maxWidth: 62 + "ch", color: "rgba(255,255,255,0.72)" }}>
+          <p>
+            Every relocation represents a new beginning. Over the years, APAC Relocation
+            has helped individuals, families, professionals, and organizations successfully
+            relocate across international borders with confidence.
+          </p>
+          <p className="mt-16">
+            Our experience, global network, and relocation expertise help deliver reliable
+            moving solutions tailored to every customer.
+          </p>
+        </div>
 
         <div className="stats-grid mt-48">
-          {stats.map((s, i) => (
+          {STATS.map((s, i) => (
             <div key={i} className="stat-cell">
-              <div className="stat-val">
-                <CountUp to={s.value} suffix={s.suffix} decimals={s.decimals || 0} />
+              <div className={"stat-val" + (s.text ? " is-text" : "")}>
+                {s.text
+                  ? <span className="mono">{s.text}</span>
+                  : <CountUp to={s.value} suffix={s.suffix} decimals={s.decimals || 0} />}
               </div>
               <div className="stat-lbl">{s.label}</div>
               <div className="stat-note">{s.note}</div>
             </div>
           ))}
         </div>
+
+        <h3 className="h3 mt-48">Why customers choose APAC Relocation</h3>
+        <div className="services-footer mt-24">
+          {WHY_APAC.map((w) => (
+            <div key={w} className="chip"><span className="mono">✓</span> {w}</div>
+          ))}
+        </div>
+        <p className="mt-24" style={{ fontSize: 15, lineHeight: 1.55, maxWidth: 70 + "ch", color: "rgba(255,255,255,0.72)" }}>
+          Whether you're planning an international moving journey, preparing for moving to
+          the USA, or looking for trusted relocation support, our team is committed to
+          helping make your transition smooth, efficient, and stress-free.
+        </p>
       </div>
     </section>
   );
@@ -131,36 +296,48 @@ function Stats() {
 
 const FAQS = [
   {
-    q: "How much does it cost to move from Singapore to the United States?",
-    a: "All-in door-to-door averages SGD 6,400 (studio) to SGD 14,800 (4-bedroom). The biggest drivers are mode (sea vs air), volume, packing scope, and destination. Use our live calculator for an estimate within ±5% of your final invoice.",
+    q: "How much does it cost to move to the USA?",
+    a: "The cost of an international move depends on several factors, including shipment volume, destination city, transportation method, and additional services required. Request a personalized quote to receive an accurate estimate based on your relocation requirements.",
   },
   {
-    q: "How long does a Singapore → USA move actually take?",
-    a: "Sea freight runs 26–47 days port-to-port plus 7–10 days of origin services and 5–7 days of US customs and delivery — call it 6 to 9 weeks door-to-door. Air freight collapses that to 3–4 weeks. Express courier for essential boxes lands in 5–8 days.",
+    q: "How long does international moving to the USA take?",
+    a: "Transit times vary depending on the origin location, destination, shipping method, customs procedures, and seasonal demand. Air freight is generally faster, while sea freight is often more cost-effective for larger household shipments.",
   },
   {
-    q: "What can't I ship into the United States?",
-    a: "Alcohol, perishables, plant materials, firearms without an ATF permit, and certain electronics with lithium-ion above 100Wh. We send a personalized restricted-items list with every quote and walk you through US Customs Form 3299 for unaccompanied goods.",
+    q: "What shipping options are available when relocating to the USA?",
+    a: "Customers can choose from:",
+    bullets: [
+      "Air freight",
+      "Sea freight",
+      "Full Container Load (FCL)",
+      "Shared Container Load (LCL)",
+      "Combined shipping solutions",
+    ],
+    after: "Our relocation specialists will recommend the most suitable option based on your timeline and budget.",
   },
   {
-    q: "Do I have to be present when you pack?",
-    a: "Yes, on packing day. We need a designated decision-maker — you or a nominated proxy — for inventory sign-off. Most of our clients keep working until the moment we arrive, then hand us their keys.",
+    q: "Do you provide packing services?",
+    a: "Yes. Our professional packing teams use export-grade materials and proven packing techniques designed to protect your belongings during international transportation.",
   },
   {
-    q: "Do you handle the visa process too?",
-    a: "We work with three Singapore-based US immigration partners and route every client to whichever team fits their visa class. We do not file the visa ourselves, but we coordinate timelines so your shipment and your I-94 arrive in step.",
+    q: "Can I move my vehicle to the USA?",
+    a: "Yes. We assist with vehicle shipping coordination and provide guidance on transportation and documentation requirements for eligible vehicles.",
   },
   {
-    q: "What's covered by insurance — and at what cost?",
-    a: "Our all-risk transit cover is 2.5% of declared value plus a SGD 180 administration fee. It includes door-to-door cover, war and strikes risk, and a 60-day storage-in-transit window. We process claims in-house — most resolve in under 21 days.",
+    q: "Can I relocate with my pets?",
+    a: "Yes. Our pet relocation specialists help coordinate documentation, travel requirements, transportation arrangements, and destination guidance for approved pets moving to the United States.",
   },
   {
-    q: "Can you store my things if my US lease isn't ready?",
-    a: "Yes. Origin storage in Singapore is SGD 4.40/m³/week (climate-controlled). Destination storage in any of our 9 US warehouses is SGD 6.20/m³/week. Both can be reserved up to 6 months ahead.",
+    q: "Do you provide customs documentation support?",
+    a: "Yes. Our relocation team provides guidance on customs documentation and import requirements to help support a smoother relocation experience.",
   },
   {
-    q: "What if my move size or date changes?",
-    a: "Volume changes are recalculated against the same per-m³ rate locked in your quote — no re-pricing risk. Date changes inside 14 days of pack day incur a SGD 480 rebooking fee; outside that window, no charge.",
+    q: "Do you offer storage solutions?",
+    a: "Yes. Flexible short-term and long-term storage solutions are available for customers who require additional storage before, during, or after their relocation.",
+  },
+  {
+    q: "Can businesses use your corporate relocation services?",
+    a: "Absolutely. Our corporate relocation solutions support employee transfers, executive relocations, global mobility programs, and workforce relocation requirements.",
   },
 ];
 
@@ -173,11 +350,12 @@ function FAQ() {
           <div className="faq-side">
             <div className="eyebrow">FAQ · 10</div>
             <h2 className="h1 mt-16">
-              Questions, <span className="serif">answered.</span>
+              Moving to the USA:<br />
+              <span className="serif">frequently asked questions.</span>
             </h2>
             <p className="lede mt-24">
-              Eight things almost everyone asks before signing a relocation contract.
-              Couldn't find yours?
+              Planning an international move comes with plenty of questions. Here are some
+              of the most common questions customers ask when preparing to move to the USA.
             </p>
             <a className="btn ghost mt-24" href="#contact">
               Ask a move manager <span className="arr">→</span>
@@ -194,6 +372,14 @@ function FAQ() {
                 </button>
                 <div className="faq-a">
                   <p>{f.a}</p>
+                  {f.bullets && (
+                    <ul className="svc-bullets">
+                      {f.bullets.map((b) => (
+                        <li key={b}><span className="mono">✓</span> {b}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {f.after && <p>{f.after}</p>}
                 </div>
               </li>
             ))}
