@@ -79,26 +79,45 @@ function Placeholder({ label, ratio = "wide", corner, children, style, className
 // Footer links mirror www.apacrelocation.com's footer (client request, Jul 2026),
 // minus the "Relocate to Singapore" column/link which the client asked to drop.
 const SITE = "https://apacrelocation.com";
-// The client's US city pages live under the USA landing page and use an
-// "-america" suffix (verified against apacrelocation.com/sitemap.xml, 5 Aug 2026).
-const USA = "/moving/international-movers/moving-to-the-usa-best-international-mover-from-singapore";
+const USA_LANDING = "/moving/international-movers/moving-to-the-usa-best-international-mover-from-singapore/";
+// City pages sit under /moving/international-moving/ (not under the USA landing
+// page) and take an "-america" suffix. Slugs and labels are the client's own,
+// taken from the "Popular Cities in America" block on the USA landing page —
+// all 23 verified 200 on 7 Aug 2026. "sand-diego" is their slug, not a typo here.
+const US_CITIES = [
+  ["New York", "new-york"],
+  ["Chicago", "chicago"],
+  ["Los Angeles", "los-angeles"],
+  ["Philadelphia", "philadelphia"],
+  ["Houston", "houston"],
+  ["Phoenix", "phoenix"],
+  ["San Antonio", "san-antonio"],
+  ["San Diego", "sand-diego"],
+  ["Dallas", "dallas"],
+  ["San Jose", "san-jose"],
+  ["Austin", "austin"],
+  ["San Francisco", "san-francisco"],
+  ["Charlotte", "charlotte"],
+  ["Seattle", "seattle"],
+  ["Denver", "denver"],
+  ["Detroit", "detroit"],
+  ["Washington", "washington"],
+  ["Boston", "boston"],
+  ["Baltimore", "baltimore"],
+  ["Louisville", "louisville"],
+  ["Kansas City", "kansas-city"],
+  ["Atlanta", "atlanta"],
+  ["Oakland", "oakland"],
+];
 const FOOTER_COLS = [
   {
     h: "International Moving",
     links: [
-      ["Asia", "/moving/international-movers/moving-to-asia/"],
-      ["Singapore", "/moving/international-movers/moving-to-singapore/"],
-      ["India", "/moving/international-movers/moving-to-india-from-singapore/"],
-      ["Australia", "/moving/international-movers/moving-to-australia-from-singapore/"],
-      ["New Zealand", "/moving/international-movers/moving-to-new-zealand-from-singapore/"],
-      ["America", USA + "/"],
-      ["New York", USA + "/moving-to-new-york-america/"],
-      ["Los Angeles", USA + "/moving-to-los-angeles-america/"],
-      ["Europe", "/moving/international-movers/moving-to-europe-from-singapore/"],
-      ["UK", "/moving/international-movers/moving-to-europe-from-singapore/moving-to-uk-from-singapore/"],
-      ["Germany", "/moving/international-movers/moving-to-europe-from-singapore/moving-to-germany-from-singapore/"],
-      ["Switzerland", "/moving/international-movers/moving-to-europe-from-singapore/moving-to-switzerland/"],
-      ["Africa", "/moving/international-movers/moving-to-africa/"],
+      ["Moving to America", USA_LANDING],
+      ...US_CITIES.map(([city, slug]) => [
+        `Moving to ${city}`,
+        `/moving/international-moving/moving-to-${slug}-america/`,
+      ]),
     ],
   },
   {
