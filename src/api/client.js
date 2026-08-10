@@ -75,6 +75,9 @@ const round2 = (n) => Math.round(n * 100) / 100;
 export function buildBaseOrderPayload(values) {
   // The backend parses moving_date as a number → epoch milliseconds.
   const ts = Date.parse(values.date || "");
+  // Backend team (10 Aug 2026): FULL_HOUSEHOLD must be sent as FCL, not CONSOLE.
+  // Partial households and few-boxes moves stay consolidated.
+  const movingType = MOVING_TYPE[values.size] || "FULL_HOUSEHOLD";
   return {
     name: values.name || "",
     email: values.email || "",
@@ -87,9 +90,9 @@ export function buildBaseOrderPayload(values) {
     destination_address: values.dest || "",
     moving_date: Number.isFinite(ts) ? ts : 0,
     shipment_mode: values.mode || DEFAULT_SHIPMENT_MODE,
-    shipment_type: DEFAULT_SHIPMENT_TYPE,
+    shipment_type: movingType === "FULL_HOUSEHOLD" ? "FCL" : DEFAULT_SHIPMENT_TYPE,
     need_packing: true,
-    moving_type: MOVING_TYPE[values.size] || "FULL_HOUSEHOLD",
+    moving_type: movingType,
     test_lead: TEST_LEAD,
   };
 }
