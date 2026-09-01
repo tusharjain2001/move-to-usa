@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SectionHeader, Placeholder } from "./chrome.jsx";
+import { getApacPricing } from "../api/client.js";
 // Client-supplied city photography (src/assets/country images/).
 import sanFranciscoPhoto from "../assets/country images/San Francisco.jpeg";
 import seattlePhoto from "../assets/country images/SEATTLE.jpeg";
@@ -251,7 +252,6 @@ const DEST = [
     coord: { x: 84, y: 30 },
     transit: "34–45 days",
     air: "7–10 days",
-    avgCost: "SGD 8,600",
     population: "20.1M metro",
     climate: "Variable · 28–85°F",
     apac: "14% APAC heritage",
@@ -267,7 +267,6 @@ const DEST = [
     coord: { x: 9, y: 58 },
     transit: "26–34 days",
     air: "6–9 days",
-    avgCost: "SGD 8,200",
     population: "13M metro",
     climate: "Warm · 60–85°F",
     apac: "16% APAC heritage",
@@ -283,7 +282,6 @@ const DEST = [
     coord: { x: 6, y: 48 },
     transit: "26–34 days",
     air: "6–9 days",
-    avgCost: "SGD 8,400",
     population: "7.7M metro",
     climate: "Mild · 50–70°F",
     apac: "37% APAC heritage",
@@ -299,7 +297,6 @@ const DEST = [
     coord: { x: 10, y: 18 },
     transit: "24–32 days",
     air: "5–8 days",
-    avgCost: "SGD 7,900",
     population: "4.0M metro",
     climate: "Cool · 45–70°F",
     apac: "20% APAC heritage",
@@ -315,7 +312,6 @@ const DEST = [
     coord: { x: 47, y: 75 },
     transit: "38–50 days",
     air: "8–11 days",
-    avgCost: "SGD 8,700",
     population: "2.4M metro",
     climate: "Hot · 50–95°F",
     apac: "8% APAC heritage",
@@ -331,7 +327,6 @@ const DEST = [
     coord: { x: 62, y: 26 },
     transit: "36–48 days",
     air: "8–11 days",
-    avgCost: "SGD 8,800",
     population: "9.5M metro",
     climate: "Variable · 20–85°F",
     apac: "7% APAC heritage",
@@ -347,7 +342,6 @@ const DEST = [
     coord: { x: 86, y: 24 },
     transit: "36–47 days",
     air: "8–11 days",
-    avgCost: "SGD 8,900",
     population: "4.9M metro",
     climate: "Variable · 30–80°F",
     apac: "11% APAC heritage",
@@ -363,7 +357,6 @@ const DEST = [
     coord: { x: 84, y: 58 },
     transit: "38–50 days",
     air: "9–12 days",
-    avgCost: "SGD 9,000",
     population: "6.2M metro",
     climate: "Warm · 60–90°F",
     apac: "2% APAC heritage",
@@ -379,7 +372,6 @@ const DEST = [
     coord: { x: 53, y: 73 },
     transit: "36–48 days",
     air: "9–12 days",
-    avgCost: "SGD 8,600",
     population: "7.5M metro",
     climate: "Hot · 45–95°F",
     apac: "8% APAC heritage",
@@ -395,7 +387,6 @@ const DEST = [
     coord: { x: 82, y: 37 },
     transit: "36–47 days",
     air: "8–11 days",
-    avgCost: "SGD 8,800",
     population: "6.4M metro",
     climate: "Variable · 30–88°F",
     apac: "11% APAC heritage",
@@ -405,9 +396,66 @@ const DEST = [
   },
 ];
 
+// ── Live "avg move cost" ──────────────────────────────────────────────────────
+// Priced off the same APAC endpoint the calculator uses, for a representative
+// household so the cities are comparable. That endpoint takes an explicit port,
+// and a few of them are named differently from the city on the rate sheet.
+const DEST_PORT = { "Los Angeles": "Los Angeles,CA", Houston: "Houston,TX", Austin: "Houston,TX" };
+const AVG_VOLUME_M3 = 20;
+
+// The endpoint intermittently answers with final_price 0 and none of the pricing
+// components (seen across every country, not just the USA). Retry a couple of
+// times before falling back, so a brief blip doesn't blank the tile.
+const PRICE_ATTEMPTS = 3;
+const PRICE_RETRY_MS = 1200;
+
+async function fetchAvgCost(city) {
+  for (let i = 0; i < PRICE_ATTEMPTS; i++) {
+    const res = await getApacPricing({
+      originPort: "Singapore",
+      originCountry: "Singapore",
+      destinationPort: DEST_PORT[city] || city,
+      destinationCity: city,
+      toCountry: "United States",
+      volumeM3: AVG_VOLUME_M3,
+      containerType: "FT_20",
+      shipmentType: "CONSOLE",
+      movingType: "PARTIAL_HOUSEHOLD",
+    });
+    const q = (res && res.data) || res || {};
+    // Whatever final_price the endpoint returns is what we display — the figure
+    // is the backend's to own, not ours to second-guess.
+    const amount = Number(q.final_price && q.final_price.amount);
+    if (amount) {
+      const cur = (q.final_price && q.final_price.currency) || "SGD";
+      return `${cur} ${amount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+    if (i < PRICE_ATTEMPTS - 1) await new Promise((r) => setTimeout(r, PRICE_RETRY_MS));
+  }
+  return null;
+}
+
+function useAvgCost(city) {
+  const [cache, setCache] = useState({});
+  useEffect(() => {
+    if (!city || cache[city]) return;
+    let alive = true;
+    setCache((c) => ({ ...c, [city]: { state: "loading" } }));
+    fetchAvgCost(city)
+      .then((text) => {
+        if (!alive) return;
+        setCache((c) => ({ ...c, [city]: text ? { state: "ok", text } : { state: "none" } }));
+      })
+      .catch(() => alive && setCache((c) => ({ ...c, [city]: { state: "error" } })));
+    return () => { alive = false; };
+  }, [city]);
+  return cache[city] || { state: "loading" };
+}
+
 function Destinations() {
   const [active, setActive] = useState(0);
   const d = DEST[active];
+  const cost = useAvgCost(d.city);
   return (
     <section className="band paper" id="destinations">
       <div className="wrap">
@@ -533,8 +581,14 @@ function Destinations() {
                   <div className="lbl">Air transit</div>
                 </div>
                 <div className="numtile">
-                  <div className="num" style={{ fontSize: 24 }}>{d.avgCost}</div>
-                  <div className="lbl">Avg move cost</div>
+                  <div className="num" style={{ fontSize: 24 }}>
+                    {cost.state === "ok" ? cost.text
+                      : cost.state === "loading" ? "…"
+                      : "On request"}
+                  </div>
+                  <div className="lbl">
+                    {cost.state === "ok" ? `Avg move cost · ${AVG_VOLUME_M3} m³` : "Avg move cost"}
+                  </div>
                 </div>
                 <div className="numtile">
                   <div className="num" style={{ fontSize: 24 }}>{d.apac.split(" ")[0]}</div>
