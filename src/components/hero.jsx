@@ -453,9 +453,8 @@ function QuoteBand({ values, setValues, scrollToCalc }) {
         {formError && <div className="quote-error mono">{formError}</div>}
 
         <div className="quote-band-foot">
-          <span><span className="check">✓</span> 14-day price lock</span>
-          <span><span className="check">✓</span> FIDI &amp; IAM accredited</span>
-          <span><span className="check">✓</span> FMC OTI licensed</span>
+          <span><span className="check">✓</span> IAM accredited</span>
+          <span><span className="check">✓</span> Singapore Logistics Association</span>
           <span><span className="check">✓</span> Verified customer reviews</span>
         </div>
         </>
